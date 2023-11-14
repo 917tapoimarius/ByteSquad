@@ -1,5 +1,6 @@
 package com.bucketlist.destinations.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.NonNull;
 
@@ -9,6 +10,7 @@ public class Destination {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "destination_id", nullable = false)
+    @Schema(hidden = true)
     private Long destinationId;
     @NonNull
     @Column(name = "destination_country")
