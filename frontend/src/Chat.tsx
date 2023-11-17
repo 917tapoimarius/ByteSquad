@@ -290,7 +290,9 @@ const Chat: React.FC = () => {
                 params: requestData
             });
             console.log(response.data)
-            setChatResponseTextBox(response.data.replace(/\\n/g, '\n'));
+            const processedResponse = response.data.split('\n').slice(2).join('\n');
+
+            setChatResponseTextBox(processedResponse);
             setHasChanges(true);
             // while (response.status != 200) {
             //     console.log("1")
