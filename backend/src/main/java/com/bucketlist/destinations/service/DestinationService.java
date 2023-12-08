@@ -2,6 +2,7 @@ package com.bucketlist.destinations.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import com.bucketlist.destinations.model.BucketList;
 import com.bucketlist.destinations.model.Destination;
 import com.bucketlist.destinations.repository.BucketListRepository;
@@ -30,15 +31,11 @@ public class DestinationService {
         return destinationRepository.findAll(PageRequest.of(pageNumber, pageSize)).getContent();
     }
 
-    public List<Destination> getPublicDestinations() {
-        return destinationRepository.findDestinationsByIsPublic(true);
+    public List<Destination> getPublicDestinations(Integer pageNumber, Integer pageSize) {
+        return destinationRepository.findDestinationsByIsPublic(true, PageRequest.of(pageNumber, pageSize));
     }
 
-    public List<Destination> getDestinationsInUserBucketList(Long userId) {
-        List<BucketList> userBucketList = bucketListRepository.findBucketListByBucketListPK_UserId(userId);
-        List<Long> destinationIds = userBucketList.stream()
-                .map(bucketList -> bucketList.getBucketListPK().getDestinationId())
-                .collect(Collectors.toList());
-        return destinationRepository.findAllById(destinationIds);
+    public List<Destination> getDestinationsInUserBucketList(Long userId, Integer pageNumber, Integer pageSize) {
+        return destinationRepository.findDestinationsForGivenUserId(userId, PageRequest.of(pageNumber, pageSize));
     }
 }

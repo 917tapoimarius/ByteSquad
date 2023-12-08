@@ -38,14 +38,14 @@ public class DestinationController {
     }
 
     @GetMapping("/publicDestinations")
-    public ResponseEntity<List<Destination>> getPublicDestinations() {
-        List<Destination> publicDestinations = destinationService.getPublicDestinations();
+    public ResponseEntity<List<Destination>> getPublicDestinations(@RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
+        List<Destination> publicDestinations = destinationService.getPublicDestinations(pageNumber, pageSize);
         return new ResponseEntity<>(publicDestinations, HttpStatus.OK);
     }
 
     @GetMapping("/destinationsInBucketList/{userId}")
-    public ResponseEntity<List<Destination>> getDestinationsInUserBucketList(@PathVariable Long userId) {
-        List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId);
+    public ResponseEntity<List<Destination>> getDestinationsInUserBucketList(@PathVariable Long userId, @RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
+        List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId, pageNumber, pageSize);
         return new ResponseEntity<>(userBucketListDestinations, HttpStatus.OK);
     }
 }   
