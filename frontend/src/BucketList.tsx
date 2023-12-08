@@ -63,8 +63,30 @@ const BucketList: React.FC = () => {
     }
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    // Get the data being dragged
+    const draggedItem = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+    const isItemAlreadyInBucket = bucketList.some(
+        (item) =>
+            item.destinationName === draggedItem.destinationName &&
+            item.destinationCountry === draggedItem.destinationCountry &&
+            item.destinationCity === draggedItem.destinationCity
+    );
+
+    // If the item is not already in the bucket list, add it
+    if (!isItemAlreadyInBucket) {
+      // Add the dragged item to the bucket list
+      setBucketList(prevList => [...prevList, draggedItem]);
+    } else {
+      alert('This item is already in your Bucket List!');
+    }
+  };
+
   return (
-    <div>
+    <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
       <h2 className='titleOfList'>Bucket List</h2>
       <div className="list-container">
         {bucketList.length === 0 ? (

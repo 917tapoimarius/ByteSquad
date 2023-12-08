@@ -32,7 +32,14 @@ const PublicList: React.FC = () => {
       ) : (
         <ul>
           {publicList.map((destination, index) => (
-            <li key={index}>
+              <li
+                  key={index}
+                  draggable   // Make each list item draggable
+                  onDragStart={(e) => {
+                    // Set the data being dragged
+                    e.dataTransfer.setData('text/plain', JSON.stringify(destination));
+                  }}
+              >
               {destination.destinationCountry}, {destination.destinationCity}
             </li>
           ))}
