@@ -48,4 +48,22 @@ public class DestinationController {
         List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId, pageNumber, pageSize);
         return new ResponseEntity<>(userBucketListDestinations, HttpStatus.OK);
     }
+
+    @GetMapping("/allDestinations/count")
+    public ResponseEntity<Long> getNumberOfDestinations(){
+        Long allDestinationsCount = destinationService.getNumberOfDestinations();
+        return new ResponseEntity<>(allDestinationsCount, HttpStatus.OK);
+    }
+
+    @GetMapping("/publicDestinations/count")
+    public ResponseEntity<Integer> getNumberOfPublicDestinations(){
+        Integer publicDestinationsCount = destinationService.getNumberOfPublicDestinations();
+        return new ResponseEntity<>(publicDestinationsCount, HttpStatus.OK);
+    }
+
+    @GetMapping("/destinationsInBucketList/{userId}/count")
+    public ResponseEntity<Integer> getNumberOfDestinationsInBucketList(@PathVariable Long userId){
+        Integer destinationsInBucketListCount = destinationService.getNumberDestinationsInUserBucketList(userId);
+        return new ResponseEntity<>(destinationsInBucketListCount, HttpStatus.OK);
+    }
 }   
