@@ -1,6 +1,7 @@
 package com.bucketlist.destinations.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.bucketlist.destinations.model.Destination;
 import com.bucketlist.destinations.repository.BucketListRepository;
@@ -33,19 +34,33 @@ public class DestinationService {
         return destinationRepository.findDestinationsByIsPublic(true, PageRequest.of(pageNumber, pageSize));
     }
 
-    public List<Destination> getDestinationsInUserBucketList(Long userId, Integer pageNumber, Integer pageSize) {
-        return destinationRepository.findDestinationsForGivenUserId(userId, PageRequest.of(pageNumber, pageSize));
-    }
-
-    public Long getNumberOfDestinations(){
+    public Long getNumberOfDestinations() {
         return destinationRepository.count();
     }
 
-    public Integer getNumberOfPublicDestinations(){
+    public Integer getNumberOfPublicDestinations() {
         return destinationRepository.findDestinationsByIsPublic(true, Pageable.unpaged()).size();
     }
 
-    public Integer getNumberDestinationsInUserBucketList(Long userId){
-        return destinationRepository.findDestinationsForGivenUserId(userId, Pageable.unpaged()).size();
+    public Integer getNumberOfDestinationsInUserBucketList(Long userId) {
+        return destinationRepository.findDestinationsForGivenUserId(userId, "", "", "", Pageable.unpaged()).size();
+    }
+
+    public List<Destination> getDestinationsInUserBucketList(Long userId, Integer pageNumber, Integer pageSize, String filteringAttribute, String filterInputData) {
+        if (Objects.equals(filteringAttribute, "DestinationName"))
+            return destinationRepository.findDestinationsForGivenUserId(userId, "", "", filterInputData, PageRequest.of(pageNumber, pageSize));
+        else if (Objects.equals(filteringAttribute, "DestinationCity"))
+            return destinationRepository.findDestinationsForGivenUserId(userId, "", filterInputData, "", PageRequest.of(pageNumber, pageSize));
+        // DestinationCountry
+        return destinationRepository.findDestinationsForGivenUserId(userId, filterInputData, "", "", PageRequest.of(pageNumber, pageSize));
+    }
+
+    public List<Destination> getPublicDestinationsFiltered(String filteringAttribute, String filterInputData) {
+        if (filteringAttribute.equals("DestinationName"))
+            return destinationRepository.findDestinationByIsPublicAndDestinationNameContainingIgnoreCase(true, filterInputData);
+        else if (filteringAttribute.equals("DestinationCity"))
+            return destinationRepository.findDestinationByIsPublicAndDestinationCityContainingIgnoreCase(true, filterInputData);
+        // DestinationCountry
+        return destinationRepository.findDestinationByIsPublicAndDestinationCountryContainingIgnoreCase(true, filterInputData);
     }
 }

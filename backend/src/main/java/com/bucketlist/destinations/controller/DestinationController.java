@@ -43,27 +43,37 @@ public class DestinationController {
         return new ResponseEntity<>(publicDestinations, HttpStatus.OK);
     }
 
-    @GetMapping("/destinationsInBucketList/{userId}")
-    public ResponseEntity<List<Destination>> getDestinationsInUserBucketList(@PathVariable Long userId, @RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
-        List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId, pageNumber, pageSize);
-        return new ResponseEntity<>(userBucketListDestinations, HttpStatus.OK);
-    }
-
     @GetMapping("/allDestinations/count")
-    public ResponseEntity<Long> getNumberOfDestinations(){
+    public ResponseEntity<Long> getNumberOfDestinations() {
         Long allDestinationsCount = destinationService.getNumberOfDestinations();
         return new ResponseEntity<>(allDestinationsCount, HttpStatus.OK);
     }
 
     @GetMapping("/publicDestinations/count")
-    public ResponseEntity<Integer> getNumberOfPublicDestinations(){
+    public ResponseEntity<Integer> getNumberOfPublicDestinations() {
         Integer publicDestinationsCount = destinationService.getNumberOfPublicDestinations();
         return new ResponseEntity<>(publicDestinationsCount, HttpStatus.OK);
     }
 
     @GetMapping("/destinationsInBucketList/{userId}/count")
-    public ResponseEntity<Integer> getNumberOfDestinationsInBucketList(@PathVariable Long userId){
-        Integer destinationsInBucketListCount = destinationService.getNumberDestinationsInUserBucketList(userId);
+    public ResponseEntity<Integer> getNumberOfDestinationsInBucketList(@PathVariable Long userId) {
+        Integer destinationsInBucketListCount = destinationService.getNumberOfDestinationsInUserBucketList(userId);
         return new ResponseEntity<>(destinationsInBucketListCount, HttpStatus.OK);
+    }
+
+    @GetMapping("/destinationsInBucketList/{userId}")
+    public ResponseEntity<List<Destination>> getDestinationsInUserBucketList(@PathVariable Long userId, @RequestParam Integer pageNumber, @RequestParam Integer pageSize, @RequestParam String filteringAttribute, @RequestParam(required = false) String filterInputData) {
+        if (filterInputData == null)
+            filterInputData = "";
+        List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId, pageNumber, pageSize, filteringAttribute, filterInputData);
+        return new ResponseEntity<>(userBucketListDestinations, HttpStatus.OK);
+    }
+
+    @GetMapping("/filterPublicDestinations")
+    public ResponseEntity<List<Destination>> filterPublicDestinations(@RequestParam String filteringAttribute, @RequestParam(required = false) String filterInputData) {
+        if (filterInputData == null)
+            filterInputData = "";
+        List<Destination> filteredPublicDestinations = destinationService.getPublicDestinationsFiltered(filteringAttribute, filterInputData);
+        return new ResponseEntity<>(filteredPublicDestinations, HttpStatus.OK);
     }
 }   
