@@ -38,29 +38,30 @@ public class DestinationService {
         return destinationRepository.count();
     }
 
-    public Integer getNumberOfPublicDestinations() {
-        return destinationRepository.findDestinationsByIsPublic(true, Pageable.unpaged()).size();
-    }
-
-    public Integer getNumberOfDestinationsInUserBucketList(Long userId) {
-        return destinationRepository.findDestinationsForGivenUserId(userId, "", "", "", Pageable.unpaged()).size();
-    }
-
-    public List<Destination> getDestinationsInUserBucketList(Long userId, Integer pageNumber, Integer pageSize, String filteringAttribute, String filterInputData) {
+    public List<Destination> getDestinationsInUserBucketList(Long userId, String filteringAttribute, String filterInputData, Pageable pageable) {
         if (Objects.equals(filteringAttribute, "DestinationName"))
-            return destinationRepository.findDestinationsForGivenUserId(userId, "", "", filterInputData, PageRequest.of(pageNumber, pageSize));
+            return destinationRepository.findDestinationsForGivenUserId(userId, "", "", filterInputData, pageable);
         else if (Objects.equals(filteringAttribute, "DestinationCity"))
-            return destinationRepository.findDestinationsForGivenUserId(userId, "", filterInputData, "", PageRequest.of(pageNumber, pageSize));
+            return destinationRepository.findDestinationsForGivenUserId(userId, "", filterInputData, "", pageable);
         // DestinationCountry
-        return destinationRepository.findDestinationsForGivenUserId(userId, filterInputData, "", "", PageRequest.of(pageNumber, pageSize));
+        return destinationRepository.findDestinationsForGivenUserId(userId, filterInputData, "", "", pageable);
     }
 
-    public List<Destination> getPublicDestinationsFiltered(String filteringAttribute, String filterInputData) {
+    public Integer getNumberOfDestinationsInUserBucketList(Long userId, String filteringAttribute, String filteringData) {
+        return getDestinationsInUserBucketList(userId, filteringAttribute, filteringData, Pageable.unpaged()).size();
+    }
+
+
+    public List<Destination> getPublicDestinationsFiltered(String filteringAttribute, String filterInputData, Pageable pageable) {
         if (filteringAttribute.equals("DestinationName"))
-            return destinationRepository.findDestinationByIsPublicAndDestinationNameContainingIgnoreCase(true, filterInputData);
+            return destinationRepository.findDestinationByIsPublicAndDestinationNameContainingIgnoreCase(true, filterInputData, pageable);
         else if (filteringAttribute.equals("DestinationCity"))
-            return destinationRepository.findDestinationByIsPublicAndDestinationCityContainingIgnoreCase(true, filterInputData);
+            return destinationRepository.findDestinationByIsPublicAndDestinationCityContainingIgnoreCase(true, filterInputData, pageable);
         // DestinationCountry
-        return destinationRepository.findDestinationByIsPublicAndDestinationCountryContainingIgnoreCase(true, filterInputData);
+        return destinationRepository.findDestinationByIsPublicAndDestinationCountryContainingIgnoreCase(true, filterInputData, pageable);
+    }
+
+    public Integer getNumberOfFilteredPublicDestinations(String filteringAttribute, String filterInputData) {
+        return getPublicDestinationsFiltered(filteringAttribute, filterInputData, Pageable.unpaged()).size();
     }
 }

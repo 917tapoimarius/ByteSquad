@@ -12,11 +12,11 @@ import org.springframework.data.jpa.repository.Query;
 public interface DestinationRepository extends JpaRepository<Destination, Long> {
      List<Destination> findDestinationsByIsPublic(boolean isPublic, Pageable pageable);
 
-     List<Destination> findDestinationByIsPublicAndDestinationCityContainingIgnoreCase(boolean isPublic, String destinationCity);
+     List<Destination> findDestinationByIsPublicAndDestinationCityContainingIgnoreCase(boolean isPublic, String destinationCity, Pageable pageable);
 
-     List<Destination> findDestinationByIsPublicAndDestinationNameContainingIgnoreCase(boolean isPublic, String destinationName);
+     List<Destination> findDestinationByIsPublicAndDestinationNameContainingIgnoreCase(boolean isPublic, String destinationName, Pageable pageable);
 
-     List<Destination> findDestinationByIsPublicAndDestinationCountryContainingIgnoreCase(boolean isPublic, String destinationCountry);
+     List<Destination> findDestinationByIsPublicAndDestinationCountryContainingIgnoreCase(boolean isPublic, String destinationCountry, Pageable pageable);
 
      @Query(value = "SELECT d.destination_id, d.destination_country, d.destination_city, d.is_public, d.description, d.destination_name\n" +
              "FROM \"Destination\" d\n" +
