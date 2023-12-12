@@ -88,4 +88,9 @@ public class Destination {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public String toString() {
+        return "Destination with id: " + destinationId + " ,country: " + destinationCountry + ", city: " + destinationCity + ", name: " + destinationName + ", description: " + description;
+    }
 }

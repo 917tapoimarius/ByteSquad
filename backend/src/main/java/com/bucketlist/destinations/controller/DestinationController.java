@@ -1,11 +1,14 @@
 package com.bucketlist.destinations.controller;
 import java.util.List;
+
+import com.bucketlist.destinations.exception.NotFoundException;
+import com.bucketlist.destinations.exception.ResourceNotFoundException;
 import com.bucketlist.destinations.model.Destination;
 import com.bucketlist.destinations.service.BucketListService;
 import com.bucketlist.destinations.service.DestinationService;
 
 
-
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,5 +65,30 @@ public class DestinationController {
         //add the destination to the user's bucket list
         bucketListService.linkDestinationToUser(userId, destinationId);
         return new ResponseEntity<>("Destination added successfully to bucket list", HttpStatus.CREATED);
+    }
+
+    @PutMapping("/update/{destinationId}")
+    public ResponseEntity<Object> updateDestination(@PathVariable Long destinationId, @RequestBody Destination newDestination) {
+        try{
+            Destination updatedDestination = destinationService.updateDestination(destinationId, newDestination);
+            return new ResponseEntity<>(updatedDestination, HttpStatus.OK);
+        } catch (ResourceNotFoundException exception) {
+            return new ResponseEntity<>("Destination not found", HttpStatus.NOT_FOUND);
+        } catch (UnsupportedOperationException exception) {
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    @DeleteMapping("/delete/{userId}/{destinationId}")
+    public ResponseEntity<Object> deleteDestination(@PathVariable Long userId, @PathVariable Long destinationId) {
+        try{
+            destinationService.deleteDestination(destinationId, userId);
+            return new ResponseEntity<>("Destination deleted successfully", HttpStatus.OK);
+        } catch (NotFoundException exception) {
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception exception) {
+            return new ResponseEntity<>("Error occurred while processing the request", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }   
