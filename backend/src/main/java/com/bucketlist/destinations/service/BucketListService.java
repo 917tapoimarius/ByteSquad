@@ -16,4 +16,9 @@ public class BucketListService {
     public void linkDestinationToUser(Long userId, Long destinationId){
         bucketListRepository.save(new BucketList(new BucketList.BucketListPK(userId, destinationId)));
     }
+
+    public boolean isDestinationInUserBucketList(Long userId, Long destinationId) {
+        //BucketList.BucketListPK bucketListPK = new BucketList.BucketListPK(userId, destinationId);
+        return bucketListRepository.existsByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, destinationId);
+    }
 }

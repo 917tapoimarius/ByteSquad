@@ -66,8 +66,6 @@ public class ChatGPTService {
                             choice.setText(choice.getText().replace("/(\\r\\n|\\n|\\r)/gm", "\\\\\\\\"));
                         }
                     }
-                    //String modifiedResponseBody = gson.toJson(chatGPTResponse);
-                    //System.out.println("Modified responseBody: " + modifiedResponseBody);
                     System.out.println("Final Answer: " + chatGPTResponse.getChoices().get(0).getText().trim());
                     return chatGPTResponse.getChoices().get(0).getText().trim();
                 }

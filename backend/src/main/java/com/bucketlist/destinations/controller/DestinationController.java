@@ -46,4 +46,21 @@ public class DestinationController {
         List<Destination> userBucketListDestinations = destinationService.getDestinationsInUserBucketList(userId);
         return new ResponseEntity<>(userBucketListDestinations, HttpStatus.OK);
     }
+
+    @PostMapping("/dragDrop/{userId}/{destinationId}")
+    public ResponseEntity<Object> dragDropDestination(@PathVariable Long userId, @PathVariable Long destinationId) {
+        Destination destination = destinationService.getDestinationById(destinationId);
+        if(destination == null) {
+            return new ResponseEntity<>("Destination not found", HttpStatus.NO_CONTENT);
+        }
+
+        //check if the user already has the destination in the bucket list
+        if(bucketListService.isDestinationInUserBucketList(userId, destinationId)) {
+            return new ResponseEntity<>("Destination already in user's bucket list", HttpStatus.BAD_REQUEST);
+        }
+
+        //add the destination to the user's bucket list
+        bucketListService.linkDestinationToUser(userId, destinationId);
+        return new ResponseEntity<>("Destination added successfully to bucket list", HttpStatus.CREATED);
+    }
 }   

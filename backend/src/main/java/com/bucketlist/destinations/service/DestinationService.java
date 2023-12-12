@@ -39,4 +39,8 @@ public class DestinationService {
                 .collect(Collectors.toList());
         return destinationRepository.findAllById(destinationIds);
     }
+
+    public Destination getDestinationById(Long destinationId) {
+        return destinationRepository.findById(destinationId).orElse(null);
+    }
 }
