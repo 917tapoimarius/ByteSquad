@@ -335,7 +335,7 @@ const BucketList: React.FC = () => {
         if (editingDestination) {
             try {
                 // Make API call to update the destination
-                const response = await fetch(`http://localhost:8080/api/v1/destination/update/${editingDestination.destinationId}?userId=1`, {
+                const response = await fetch(`http://localhost:8080/api/v1/destination/update/${editingDestination.destinationId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
