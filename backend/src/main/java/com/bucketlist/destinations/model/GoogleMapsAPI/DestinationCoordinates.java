@@ -1,5 +1,7 @@
 package com.bucketlist.destinations.model.GoogleMapsAPI;
 
+import java.util.Objects;
+
 public class DestinationCoordinates {
     private double latitude;
     private double longitude;
@@ -25,5 +27,18 @@ public class DestinationCoordinates {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DestinationCoordinates that = (DestinationCoordinates) o;
+        return Double.compare(that.latitude, latitude) == 0 && Double.compare(that.longitude, longitude) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
     }
 }

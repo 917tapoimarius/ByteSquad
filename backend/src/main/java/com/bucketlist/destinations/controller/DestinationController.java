@@ -199,4 +199,8 @@ public class DestinationController {
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/getCoordinatesForDestinationsInBucketList/{userId}")
+    public ResponseEntity<Object> getCoordinatesForDestinationsInBucketList(@PathVariable Long userId){
+        return new ResponseEntity<>(destinationService.getSetOfCoordinatesForAllDestinations(userId), HttpStatus.OK);
+    }
 }   
