@@ -190,7 +190,6 @@ const Chat: React.FC = () => {
                     "Iceland",
                     "Ireland",
                     "Italy",
-                    "Kazakhstan",
                     "Kosovo",
                     "Latvia",
                     "Liechtenstein",
@@ -323,9 +322,15 @@ const Chat: React.FC = () => {
     const handleContinentChange = (event) => {
         const selectedContinent = event.target.value;
         setSelectedContinent(selectedContinent);
-        const continent = countryList.find((c) => c.continent === selectedContinent);
-        setFilteredCountries(continent ? continent.countries : []);
-        setSelectedCountry(continent && continent.countries.length > 0 ? continent.countries[0] : '');
+        if (selectedContinent !== 'Anywhere') {
+            const continent = countryList.find((c) => c.continent === selectedContinent);
+            setFilteredCountries(continent ? continent.countries : []);
+            setSelectedCountry(continent && continent.countries.length > 0 ? continent.countries[0] : '');
+        } else {
+            // If the selected continent is "Anywhere," reset the filtered countries and selected country
+            setFilteredCountries([]);
+            setSelectedCountry('Anywhere');
+        }
     };
 
     const handleChangeCheckbox = (event) => {
@@ -349,13 +354,13 @@ const Chat: React.FC = () => {
                     <div className="dropdowns">
                         <div className="dropdown-left">
                             <DropdownItem name="Continent" options={continentList} selectedValue={selectedContinent}
-                                          handleChange={handleContinentChange}/>
+                                          handleChange={handleContinentChange} selectedContinent={selectedContinent}/>
                             <DropdownItem name="Month" options={monthsList} selectedValue={selectedMonth}
                                           handleChange={handleMonthChange}/>
                         </div>
                         <div className="dropdown-right">
                             <DropdownItem name="Country" options={filteredCountries} selectedValue={selectedCountry}
-                                          handleChange={handleCountryChange}/>
+                                          handleChange={handleCountryChange} selectedContinent={selectedContinent}/>
                             <DropdownItem name="Season" options={seasonList} selectedValue={selectedSeason}
                                           handleChange={handleSeasonChange}/>
                         </div>
@@ -426,6 +431,7 @@ const Chat: React.FC = () => {
                                     setHasChanges(true);
                                 }}
                                 readOnly
+                                disabled={true}
                             />
                         <Button
                             className="add-button"
@@ -464,6 +470,7 @@ function DropdownItem(props) {
                 onChange={props.handleChange}
                 style={{ fontFamily: 'Palatino'}}
                 sx={{backgroundColor: '#fffffc'}}
+                disabled={props.selectedContinent === 'Anywhere' && props.name === 'Country'}
             >
                 {props.options &&
                     props.options.map((option, index) => (

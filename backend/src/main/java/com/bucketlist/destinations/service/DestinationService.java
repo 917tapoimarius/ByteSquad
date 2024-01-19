@@ -1,24 +1,45 @@
 package com.bucketlist.destinations.service;
 
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.bucketlist.destinations.exception.NotFoundException;
 import com.bucketlist.destinations.exception.ResourceNotFoundException;
 import com.bucketlist.destinations.model.BucketList;
+
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import com.bucketlist.destinations.model.Destination;
+import com.bucketlist.destinations.model.GoogleMapsAPI.DestinationCoordinates;
+import com.bucketlist.destinations.model.GoogleMapsAPI.GeocodingResponse;
+import com.bucketlist.destinations.model.GoogleMapsAPI.Geometry;
 import com.bucketlist.destinations.repository.BucketListRepository;
 import com.bucketlist.destinations.repository.DestinationRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.java.Log;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DestinationService {
+    @Value("${GEOCODING_URL}")
+    private String GEOCODING_URL;
+
+    @Value("${GOOGLE_MAPS_API_KEY}")
+    private String GOOGLE_MAPS_API_KEY;
+
     protected DestinationRepository destinationRepository;
     protected BucketListRepository bucketListRepository;
 
@@ -28,7 +49,7 @@ public class DestinationService {
         this.bucketListRepository = bucketListRepository;
     }
 
-    public Destination addDestination(Destination destination, Long userId) {
+    public Destination addDestination(Destination destination) {
         return this.destinationRepository.save(destination);
     }
 
@@ -71,41 +92,82 @@ public class DestinationService {
         return getPublicDestinationsFiltered(filteringAttribute, filterInputData, Pageable.unpaged()).size();
     }
 
-    public Destination getDestinationDetails(Long destinationId) {
-        return destinationRepository.findById(destinationId)
+    public Destination getDestinationDetails(Long destinationId, Long userId) {
+        Destination destination = destinationRepository.findById(destinationId)
                 .orElseThrow(() -> new RuntimeException("Destination not found with id: " + destinationId));
+        if (destination.isPublic())
+            return destination;
+        destination.setDescription(bucketListRepository.findBucketListByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, destinationId).getDescription());
+        return destination;
     }
 
     public Destination getDestinationById(Long destinationId) {
         return destinationRepository.findById(destinationId).orElse(null);
     }
 
-    public Destination updateDestination(Long destinationId, Destination newDestination) {
+    public Destination updateDestination(Long destinationId, Destination newDestination, Long userId) {
         System.out.println("Received newDestination: " + newDestination.toString());
-        Destination existingDestination = destinationRepository.findById(destinationId).orElseThrow(() -> new ResourceNotFoundException("Destination with id: " + destinationId + " not found"));
+        Destination selectedDestination = destinationRepository.findById(destinationId).orElseThrow(() -> new ResourceNotFoundException("Destination with id: " + destinationId + " not found"));
+        Destination existingDestination = findDestinationByNameAndCityAndCountry(newDestination.getDestinationName(), newDestination.getDestinationCity(), newDestination.getDestinationCountry());
 
-        if(existingDestination.isPublic()) {
+        // Selected destination is public
+        if(selectedDestination.isPublic()) {
+            System.out.println("Case0");
             throw new UnsupportedOperationException("Public destinations cannot be edited!");
         }
 
-        existingDestination.setDestinationCountry(newDestination.getDestinationCountry());
-        existingDestination.setDestinationCity(newDestination.getDestinationCity());
-        existingDestination.setDestinationName(newDestination.getDestinationName());
-        existingDestination.setDescription(newDestination.getDescription());
+        // New destination exists and is public
+        if (existingDestination != null && existingDestination.isPublic()){
+            System.out.println("Case1");
+            throw new UnsupportedOperationException("Destination already exists as a public destination!");
+        }
 
-        return destinationRepository.save(existingDestination);
+        // New destination is private, but exists in the bucket list
+        if (existingDestination != null &&
+                bucketListRepository.existsByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, existingDestination.getDestinationId()) &&
+                !Objects.equals(existingDestination.getDestinationId(), selectedDestination.getDestinationId())){
+            System.out.println("Case2");
+            throw new UnsupportedOperationException("Destination already exists in your bucket list!");
+        }
+
+        // New destination exists in destination table only or does not exist at all, or it has similar details except
+        // the description
+
+        // We delete the existing bucket list entry
+        var bucketListPK = new BucketList.BucketListPK(userId, selectedDestination.getDestinationId());
+        BucketList bucketListEntry = bucketListRepository.findBucketListByBucketListPK(bucketListPK);
+
+        if ((existingDestination != null &&
+                !bucketListRepository.existsByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, existingDestination.getDestinationId())) ||
+                (existingDestination != null &&
+                        Objects.equals(existingDestination.getDestinationId(), selectedDestination.getDestinationId()))
+        ) {
+            // If it exists already in the destination table (and in the bucket list or not),
+            // we do not add it again in the destination table, we just edit the existing one
+            System.out.println("Case3");
+            bucketListRepository.update(existingDestination.getDestinationId(),
+                    newDestination.getDescription(), bucketListEntry.getDestinationInListId());
+            return newDestination;
+        }
+
+        // New destination did not exist
+        System.out.println("Case4");
+        Destination confirmedNewDestination =  destinationRepository.save(newDestination);
+        bucketListRepository.update(newDestination.getDestinationId(),
+                newDestination.getDescription(), bucketListEntry.getDestinationInListId());
+        return confirmedNewDestination;
     }
 
     public void deleteDestination(Long destinationId, Long userId) {
         Optional<Destination> destinationOptional = destinationRepository.findById(destinationId);
 
-        if(destinationOptional.isPresent()) {
+        if (destinationOptional.isPresent()) {
             Destination destination = destinationOptional.get();
             System.out.println("Is public");
             bucketListRepository.deleteByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, destinationId);
             System.out.println("Deleted from BL");
 
-            if(!destination.isPublic()) {
+            if (!destination.isPublic() && bucketListRepository.countBucketListByBucketListPK_DestinationId(destinationId) == 0) {
                 System.out.println("Is not public");
                 destinationRepository.deleteById(destinationId);
                 System.out.println("Deleted from destination table");
@@ -121,13 +183,68 @@ public class DestinationService {
 //                bucketListRepository.deleteByBucketListPK_UserIdAndBucketListPK_DestinationId(userId, destinationId);
 //                destinationRepository.deleteById(destinationId);
 //            }
-        }
-        else{
+        } else {
             throw new NotFoundException("Destination with ID: " + destinationId + " not found.");
         }
     }
 
-    public Destination findDestinationByNameAndCity(String destinationName, String destinationCountry){
-        return destinationRepository.findDestinationByDestinationNameAndDestinationCity(destinationName, destinationCountry);
+    public Destination findDestinationByNameAndCityAndCountry(String destinationName, String destinationCity, String destinationCountry) {
+        return destinationRepository.findDestinationByDestinationNameAndDestinationCityAndDestinationCountry(destinationName, destinationCity, destinationCountry);
+    }
+
+    private GeocodingResponse parseResponse(String response) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, GeocodingResponse.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public DestinationCoordinates getDestinationCoordinates(String destinationCity, String destinationCountry) {
+        String url = GEOCODING_URL;
+        String requestBody = MessageFormat.format("+{0},+{1}&key={2}", destinationCity, destinationCountry, GOOGLE_MAPS_API_KEY);
+
+        // Create an HTTP POST request
+        HttpPost post = new HttpPost(url + requestBody);
+
+        // Execute a HTTP POST request
+        try (CloseableHttpClient httpClient = HttpClients.custom().build();
+             CloseableHttpResponse response = httpClient.execute(post)) {
+
+            // Read the response body as a string
+            String responseBody = EntityUtils.toString(response.getEntity());
+            System.out.println("Response body: " + responseBody);
+
+            // Extract and return the coordinates from the response
+            GeocodingResponse geocodingResponse = parseResponse(responseBody.toString());
+            if (geocodingResponse != null && geocodingResponse.getResults() != null && !geocodingResponse.getResults().isEmpty()) {
+                Geometry geometry = geocodingResponse.getResults().get(0).getGeometry();
+                return new DestinationCoordinates(geometry.getLocation().getLat(), geometry.getLocation().getLng());
+            } else {
+                throw new Exception("No results are found for the given address.");
+            }
+
+        } catch (Exception e) {
+            return new DestinationCoordinates();
+        }
+    }
+
+    public List<DestinationCoordinates> getSetOfCoordinatesForAllDestinations(Long userId) {
+        List<DestinationCoordinates> destinationCoordinates = new ArrayList<>();
+
+        for (var destination : getDestinationsInUserBucketList(userId, "", "", Pageable.unpaged())) {
+            var currentDestinationCoordinates = getDestinationCoordinates(destination.getDestinationCity(), destination.getDestinationCountry());
+
+            if (
+                    currentDestinationCoordinates.getLatitude() != 0 &&
+                            currentDestinationCoordinates.getLongitude() != 0
+                            && !destinationCoordinates.contains(currentDestinationCoordinates)
+            )
+                destinationCoordinates.add(currentDestinationCoordinates);
+        }
+
+        return destinationCoordinates;
     }
 }

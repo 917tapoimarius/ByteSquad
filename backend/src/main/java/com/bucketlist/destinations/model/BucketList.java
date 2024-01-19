@@ -8,6 +8,7 @@ import java.io.Serializable;
 @Table(name = "\"BucketList\"")
 public class BucketList {
 
+    @Embeddable
     public static class BucketListPK implements Serializable {
         @Column(name = "user_id")
 //        @OneToMany
@@ -42,7 +43,7 @@ public class BucketList {
         }
 
     }
-    @EmbeddedId
+    //@EmbeddedId
     private BucketListPK bucketListPK;
 
     @Column(name = "description")
@@ -52,7 +53,10 @@ public class BucketList {
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
 //    @Column(name = "destination_in_list_id", nullable = false)
 //    private Long destinationInListId;
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "destination_in_list_id", nullable = false)
+    private Long destinationInListId;
 
     public BucketList(BucketListPK bucketListPK, String description) {
         this.bucketListPK = bucketListPK;
@@ -68,5 +72,17 @@ public class BucketList {
 
     public void setBucketListPK(BucketListPK bucketListPK) {
         this.bucketListPK = bucketListPK;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Long getDestinationInListId() {
+        return destinationInListId;
     }
 }

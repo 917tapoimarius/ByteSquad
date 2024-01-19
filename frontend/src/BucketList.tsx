@@ -49,12 +49,12 @@ const BucketList: React.FC = () => {
     const [addErrorDuplicate, setAddErrorDuplicate] = useState<boolean>(false);
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState<boolean>(false);
     const [destinationToDelete, setDestinationToDelete] = useState<Destination | null>(null);
-   // const [loading, setLoading] = useState<boolean>(true);
+    const userId = localStorage.getItem('userId');
 
     const fetchData = async () => {
         try {
             // the count of destinations
-            const countResponse = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/1/count?filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`);
+            const countResponse = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/${userId}/count?filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`);
             const countData = await countResponse.json();
             const countDestinations = countData;
             setCountDestinations(countDestinations);
@@ -62,7 +62,7 @@ const BucketList: React.FC = () => {
             setTotalPages(totalPages);
 
             // get destinations for the first page
-            const dataResponse = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/1?pageNumber=${currentPage - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`);
+            const dataResponse = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/${userId}?pageNumber=${currentPage - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`);
             const data = await dataResponse.json();
             setBucketList(data);
         } catch (error) {
@@ -76,69 +76,14 @@ const BucketList: React.FC = () => {
         fetchData();
     }, [currentPage, filterAttribute, searchTerm]);
 
-    // const fetchData = (page: number, filter: string = '') => {
-    //     fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/1?pageNumber=${page - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}&filterInputData=${filter}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //     })
-    //         .then(response => response.json())
-    //         .then((data: Destination[]) => setBucketList(data))
-    //         .catch(error => console.error('Error fetching bucket list:', error));
-    // };
-
-    // const fetchDataCount = () => {
-    //     fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/1/count?filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //     })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             setCountDestinations(data);
-    //             const updatedTotalPages = Math.ceil(data / pageSize);
-    //             setTotalPages(updatedTotalPages);
-    //         })
-    //         .catch(error => console.error('Error fetching bucket list count:', error));
-    // };
-
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const userId = 1;
-    //
-    //             const response = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/${userId}?pageNumber=${currentPage - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}&filterInputData=${searchTerm}`, {
-    //                 method: 'GET',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 },
-    //             });
-    //
-    //             if (response.ok) {
-    //                 const data = await response.json();
-    //                 setBucketList(data);
-    //             } else {
-    //                 console.error('Error fetching bucket list:', response.statusText);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error fetching bucket list:', error);
-    //         }
-    //     };
-    //
-    //     fetchData();
-    // }, [searchTerm, filterAttribute]);
     const [addSuccess, setAddSuccess] = useState<boolean>(false);
     const handleAddDestination = async () => {
-        // Check for empty fields in the new destination
         if (
             !newDestination.destinationName ||
             !newDestination.destinationCountry ||
             !newDestination.destinationCity ||
             !newDestination.description
         ) {
-            // alert('Please fill in all fields before adding the destination.');
             setfillError(true);
             return;
         }
@@ -148,13 +93,12 @@ const BucketList: React.FC = () => {
                 item.destinationCity.toLowerCase() === newDestination.destinationCity.toLowerCase()
         );
         if (isDuplicate) {
-            // alert('Destination with the same name and city already exists in the Bucket List.');
             setAddErrorDuplicate(true);
             return;
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/destination/add/1', {
+            const response = await fetch(`http://localhost:8080/api/v1/destination/add/${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,13 +109,13 @@ const BucketList: React.FC = () => {
             if (response.ok) {
                 const responseData = await response.json();
                 setAddSuccess(true);
-
-                // Add the new destination to the bucket list
+            
                 setBucketList((prevList) => [...prevList, responseData]);
+              
+                console.log('New data from backend:', responseData);
 
+                console.log('Updated bucketList:', bucketList);
                 setShowAddModal(false);
-
-                // Clear the form after adding a destination
                 setNewDestination({
                     destinationCountry: '',
                     destinationCity: '',
@@ -184,7 +128,6 @@ const BucketList: React.FC = () => {
                 const updatedTotalPages = Math.ceil((countDestinations + 1) / pageSize);
                 setTotalPages(updatedTotalPages);
 
-                // Set the current page to the newly calculated total pages
                 setCurrentPage(updatedTotalPages);
             } else {
                 console.error('Error adding destination:', response.statusText);
@@ -197,12 +140,10 @@ const BucketList: React.FC = () => {
     const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
 
         setCurrentPage(value);
-       // fetchData(value);
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const userId = 1;
 
         const notifyBackend = async () => {
             const draggedItem = JSON.parse(e.dataTransfer.getData('text/plain'));
@@ -225,13 +166,12 @@ const BucketList: React.FC = () => {
 
                     if (!response.ok) {
                         if (response.status === 400) {
-                            // alert('This item is already in your Bucket List!');
                             setAddError(true);
                         } else {
                             console.error('Error notifying backend:', response.statusText);
                         }
                     } else {
-                        const updatedData = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/1?pageNumber=${currentPage - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}`, {
+                        const updatedData = await fetch(`http://localhost:8080/api/v1/destination/destinationsInBucketList/${userId}?pageNumber=${currentPage - 1}&pageSize=${pageSize}&filteringAttribute=${filterAttribute}`, {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -243,10 +183,8 @@ const BucketList: React.FC = () => {
 
                         setCountDestinations(prevCount => prevCount + 1);
                         const updatedTotalPages = Math.ceil((countDestinations + 1) / pageSize);
-                        // const updatedTotalPages = Math.ceil(updatedCount / pageSize);
                         setTotalPages(updatedTotalPages);
 
-                        // Set the current page to the newly calculated total pages
                         setCurrentPage(updatedTotalPages);
 
 
@@ -257,7 +195,6 @@ const BucketList: React.FC = () => {
                     console.error('Error notifying backend:', error);
                 }
             } else {
-                // 
                 setAddError(true);
             }
         };
@@ -267,13 +204,11 @@ const BucketList: React.FC = () => {
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
-        //fetchDataCount();
         setCurrentPage(1);
         console.log("handleSearchChange: " + "currentPage" + currentPage + " totalPages: " + totalPages, + " count: " + countDestinations)
 
     };
     const handleItemClick = (destinationId: number) => {
-    // Redirect to the destination details page using the destination ID
     window.location.assign(`/detail/${destinationId}`);
   };
 
@@ -298,7 +233,8 @@ const BucketList: React.FC = () => {
 
         if (destinationToDelete) {
             try {
-                const response = await fetch(`http://localhost:8080/api/v1/destination/delete/1/${destinationToDelete.destinationId}`, {
+
+                const response = await fetch(`http://localhost:8080/api/v1/destination/delete/${userId}/${destinationToDelete.destinationId}`, {
                     method: 'DELETE',
                 });
 
@@ -337,8 +273,7 @@ const BucketList: React.FC = () => {
     const handleSaveEdit = async () => {
         if (editingDestination) {
             try {
-                // Make API call to update the destination
-                const response = await fetch(`http://localhost:8080/api/v1/destination/update/${editingDestination.destinationId}`, {
+                const response = await fetch(`http://localhost:8080/api/v1/destination/update/${editingDestination.destinationId}?userId=${userId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -347,7 +282,6 @@ const BucketList: React.FC = () => {
                 });
 
                 if (response.ok) {
-                    // Update the state to reflect the changes
                     setBucketList((prevList) =>
                         prevList.map((item) => (item.destinationId === editingDestination.destinationId ? editingDestination : item))
                     );
@@ -364,7 +298,6 @@ const BucketList: React.FC = () => {
 
     const listItemStyle: React.CSSProperties = {
         position: 'relative',
-        // Add any additional styling for list item
     };
 
     const entityActionsStyle: React.CSSProperties = {
@@ -535,7 +468,6 @@ const BucketList: React.FC = () => {
                                 onChange={(e) => setEditingDestination((prev) => ({ ...prev!, description: e.target.value }))}
                             />
                         </label>
-                        {/* Add more similar inputs for other destination properties */}
                         <button onClick={handleSaveEdit}>Save</button>
                         <button onClick={closeEditForm}>Cancel</button>
                     </div>

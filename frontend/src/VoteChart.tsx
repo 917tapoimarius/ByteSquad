@@ -6,13 +6,14 @@ interface Vote {
     destinationId: string;
     month: number;
     number: number;
+    keyForRefresh: number;
 }
 
 interface VoteProps {
     destinationId: number;
 }
 
-const VoteChart: React.FC<VoteProps> = ({ destinationId }) => {
+const VoteChart: React.FC<VoteProps> = ({ destinationId, keyForRefresh }) => {
     const [votes, setVotes] = useState<Vote[]>([]);
 
     useEffect(() => {
@@ -37,7 +38,7 @@ const VoteChart: React.FC<VoteProps> = ({ destinationId }) => {
         };
 
         fetchVotes();
-    }, [destinationId]);
+    }, [destinationId, keyForRefresh]);
 
     const getMonthName = (monthNumber: number) => {
         const date = new Date(2000, monthNumber - 1, 1); // Year 2000 is arbitrary, day set to 1 to avoid issues

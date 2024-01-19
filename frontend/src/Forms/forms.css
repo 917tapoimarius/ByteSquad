@@ -1,0 +1,83 @@
+body {
+    font-family: 'Quicksand', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.login-form,
+.register-form {
+    background-color: #ffffff84;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 30px;
+    padding: 20px;
+    margin-top: 20px;
+    width: 400px;
+    max-height: 600px; 
+    overflow-y: auto; 
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+.button1 {
+    background-color: #c8b199;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left:320px;
+   
+}
+
+.button1:hover {
+    background-color: #6a5d51;
+}
+
+.titleOfList {
+    font-size: 30px;
+    color: #000000;
+    font-weight: bold;
+    margin-top: -30px;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 5px 15px;
+}
+
+.list-container {
+    margin: 20px;
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #BF8F62;
+    border-radius: 8px;
+    height: 450px;
+    width: 370px;
+    background-color: #f5d7b883;
+}
