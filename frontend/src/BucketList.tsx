@@ -49,6 +49,7 @@ const BucketList: React.FC = () => {
     const [addErrorDuplicate, setAddErrorDuplicate] = useState<boolean>(false);
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState<boolean>(false);
     const [destinationToDelete, setDestinationToDelete] = useState<Destination | null>(null);
+    const [editError, setEditError] = useState<boolean>(false);
     const userId = localStorage.getItem('userId');
 
     const fetchData = async () => {
@@ -288,9 +289,11 @@ const BucketList: React.FC = () => {
                     setUpdateSuccess(true);
                     closeEditForm();
                 } else {
+                    setEditError(true);
                     console.error('Error updating destination:', response.statusText);
                 }
             } catch (error) {
+                setEditError(true);
                 console.error('Error updating destination:', error);
             }
         }
@@ -504,6 +507,11 @@ const BucketList: React.FC = () => {
                 Please fill in all fields before adding the destination.
                 </Alert>
                 </Snackbar>  
+                <Snackbar open={editError} autoHideDuration={3000} onClose={() => setEditError(false)}>
+    <Alert onClose={() => setEditError(false)} severity="error">
+        The destination is already in the Bucket List.
+    </Alert>
+</Snackbar>
                 {destinationToDelete && (
                 <Dialog open={deleteConfirmationOpen} onClose={closeDeleteConfirmation}>
                     <DialogTitle style={{ textAlign: 'center', fontFamily: "'Quicksand', sans-serif" }}>Delete Destination</DialogTitle>
